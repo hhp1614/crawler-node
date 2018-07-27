@@ -9,8 +9,9 @@
 </head>
 <body>
 <div id="app">
-    <i-table :columns="tableCol" :data="tableData" size="small"></i-table>
+    <i-table :loading="loading" :columns="tableCol" :data="tableData" size="small" ref="table"></i-table>
     <div style="margin: 10px; overflow: hidden">
+        <i-button type="primary" @click="exportData">导出</i-button>
         <div style="float: right;">
             <Page :total="total"
                   :current="1"
@@ -27,6 +28,7 @@
     new Vue({
         el: '#app',
         data: {
+            loading: true,
             tableCol: [
                 {
                     title: '标题',
@@ -63,7 +65,7 @@
                             }, item));
                         });
                         return h('div', arr);
-                    }
+                    },
                 },
                 {
                     title: '价格',
@@ -73,6 +75,7 @@
                 {
                     title: '链接',
                     key: 'link',
+                    width: 80,
                     render: (h, params) => {
                         return h('div', [
                             h('a', {
@@ -82,7 +85,7 @@
                                 }
                             }, '详情')
                         ]);
-                    }
+                    },
                 },
             ],
             tableData: [],
@@ -90,14 +93,16 @@
             total: 0,
             page: 1,
             size: 10,
-            sizeOpt: [10, 30, 50, 100, 150, 200],
+            sizeOpt: [10, 30, 50, 100],
         },
         mounted() {
             this.getData();
         },
         methods: {
             getData() {
+                this.loading = true;
                 fetch('./result/data.json').then(response => response.json()).then(res => {
+                    this.loading = false;
                     this.allData = res;
                     this.total = res.length;
                     this.changeData();
@@ -115,6 +120,13 @@
                 let start = (this.page - 1) * this.size;
                 let end = start + this.size;
                 this.tableData = this.allData.slice(start, end);
+            },
+            exportData() {
+                this.$refs.table.exportCsv({
+                    filename: '贝壳租房',
+                    columns: this.tableCol,
+                    data: this.allData,
+                });
             },
         },
     });
