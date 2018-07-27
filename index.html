@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="node_modules/iview/dist/styles/iview.css">
+    <script src="node_modules/vue/dist/vue.min.js"></script>
+    <script src="node_modules/iview/dist/iview.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <i-table :columns="tableCol" :data="tableData" size="small"></i-table>
+    <div style="margin: 10px; overflow: hidden">
+        <div style="float: right;">
+            <Page :total="total"
+                  :current="1"
+                  :page-size="size"
+                  :page-size-opts="sizeOpt"
+                  @on-change="changePage"
+                  @on-page-size-change="changeSize"
+                  show-total show-sizer show-elevator>
+            </Page>
+        </div>
+    </div>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            tableCol: [
+                {
+                    title: '标题',
+                    key: 'title',
+                },
+                {
+                    title: '大小',
+                    key: 'des',
+                },
+                {
+                    title: '来源',
+                    key: 'brand',
+                    width: 150,
+                },
+                {
+                    title: '发布时间',
+                    key: 'time',
+                    width: 150,
+                },
+                {
+                    title: '标签',
+                    key: 'tag',
+                    width: 300,
+                    render: (h, params) => {
+                        let arr = [];
+                        params.row.tag.forEach(item => {
+                            arr.push(h('Tag', {
+                                props: {
+                                    color: 'yellow'
+                                },
+                                style: {
+                                    marginRight: '5px'
+                                },
+                            }, item));
+                        });
+                        return h('div', arr);
+                    }
+                },
+                {
+                    title: '价格',
+                    key: 'price',
+                    width: 150,
+                },
+                {
+                    title: '链接',
+                    key: 'link',
+                    render: (h, params) => {
+                        return h('div', [
+                            h('a', {
+                                attrs: {
+                                    href: params.row.link,
+                                    target: '_blank',
+                                }
+                            }, '详情')
+                        ]);
+                    }
+                },
+            ],
+            tableData: [],
+            allData: [],
+            total: 0,
+            page: 1,
+            size: 10,
+            sizeOpt: [10, 30, 50, 100, 150, 200],
+        },
+        mounted() {
+            this.getData();
+        },
+        methods: {
+            getData() {
+                fetch('./result/data.json').then(response => response.json()).then(res => {
+                    this.allData = res;
+                    this.total = res.length;
+                    this.changeData();
+                });
+            },
+            changePage(page) {
+                this.page = page;
+                this.changeData();
+            },
+            changeSize(size) {
+                this.size = size;
+                this.changeData();
+            },
+            changeData() {
+                let start = (this.page - 1) * this.size;
+                let end = start + this.size;
+                this.tableData = this.allData.slice(start, end);
+            },
+        },
+    });
+</script>
+</body>
+</html>
